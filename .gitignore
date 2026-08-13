@@ -10,6 +10,10 @@ profile.json
 out/
 *.html
 !jobhunt/templates/*.html
+!frontend/index.html
+
+# personal resume files (keep derived profile and source documents local)
+*_Resume.pdf
 
 # Your dedupe index and application tracker. Personal, and it must never ship
 # with the repo: a cloned seen.json marks every job as already-seen, so a new
@@ -26,6 +30,11 @@ env/
 *.egg-info/
 .pytest_cache/
 .mypy_cache/
+
+# frontend dependencies and generated production assets
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
 
 # editors / os
 .vscode/

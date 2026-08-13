@@ -15,7 +15,14 @@ class Store:
         self.data: dict[str, dict] = {}
         if self.path.exists():
             try:
-                self.data = json.loads(self.path.read_text())
+                raw = self.path.read_bytes()
+                try:
+                    text = raw.decode("utf-8")
+                except UnicodeDecodeError:
+                    # Older Windows runs used the locale default when saving.
+                    # Read that legacy file once; the next save normalizes it.
+                    text = raw.decode("cp1252")
+                self.data = json.loads(text)
             except json.JSONDecodeError:
                 print(f"  ! {self.path} corrupt, starting fresh")
 
@@ -40,10 +47,16 @@ class Store:
         self.save()
 
     def mark_applied(self, job_id: str) -> bool:
+        return self.set_applied(job_id, True)
+
+    def set_applied(self, job_id: str, applied: bool) -> bool:
+        """Set application status explicitly (used by both CLI and web UI)."""
         if job_id not in self.data:
             return False
-        self.data[job_id]["applied"] = True
-        self.data[job_id]["applied_on"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        self.data[job_id]["applied"] = applied
+        self.data[job_id]["applied_on"] = (
+            datetime.now(timezone.utc).isoformat(timespec="seconds") if applied else None
+        )
         self.save()
         return True
 
@@ -68,4 +81,6 @@ class Store:
         return path
 
     def save(self) -> None:
-        self.path.write_text(json.dumps(self.data, indent=2, ensure_ascii=False))
+        self.path.write_text(
+            json.dumps(self.data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )

@@ -215,6 +215,19 @@ def cmd_stats(args) -> int:
     return 0
 
 
+def cmd_web(args) -> int:
+    """Serve the local dashboard and API from the same process."""
+    try:
+        import uvicorn
+    except ImportError:
+        print("web dependencies are missing — run `pip install -r requirements.txt`")
+        return 1
+    print(f"jobhunt control room: http://{args.host}:{args.port}")
+    print("keep this bound to localhost unless you add authentication and TLS")
+    uvicorn.run("jobhunt.web:app", host=args.host, port=args.port, reload=args.reload)
+    return 0
+
+
 def main(argv=None) -> int:
     _load_env()
     p = argparse.ArgumentParser(
@@ -244,6 +257,13 @@ def main(argv=None) -> int:
 
     ss = sub.add_parser("stats", help="tracker summary + CSV export")
     ss.set_defaults(func=cmd_stats)
+
+    sw = sub.add_parser("web", help="start the local web dashboard")
+    sw.add_argument("--host", default=os.getenv("JOBHUNT_WEB_HOST", "127.0.0.1"),
+                    help="bind address (localhost by default)")
+    sw.add_argument("--port", type=int, default=int(os.getenv("JOBHUNT_WEB_PORT", "8000")))
+    sw.add_argument("--reload", action="store_true", help="auto-reload the API while developing")
+    sw.set_defaults(func=cmd_web)
 
     args = p.parse_args(argv)
     return args.func(args)

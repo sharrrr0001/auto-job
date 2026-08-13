@@ -12,7 +12,7 @@ filters:
   # Engineer" — different words entirely. Use \bsde\b for the acronym and
   # list the spelled-out variants separately, as below.
   include_titles:
-    - '\b(software|backend|back-end|server|platform|infrastructure|infra|systems|distributed|cloud)\b.*\bengineer\b'
+    - '\b(software|backend|jr backend|back-end|server|platform|cyber|infra|systems|distributed|ai engineer)\b.*\bengineer\b'
     - '\bengineer\b.*\b(backend|back-end|platform|infrastructure|infra|systems|distributed)\b'
     - '\bsde\b'
     - '\bsde\s*-?\s*(i{1,3}|[123])\b'
@@ -26,6 +26,7 @@ filters:
     - '\bnetwork(ing)?\s+(software\s+)?engineer\b'
     - '\b(kernel|embedded|firmware|driver|packet|dataplane|data plane)\b.*\bengineer\b'
     - '\bengineer\b.*\b(kernel|packet|dataplane|networking|performance)\b'
+
     - '\bperformance engineer\b'
     - '\bsystems engineer\b'
     - '\bc\+\+\b.*\bengineer\b'
@@ -40,7 +41,6 @@ filters:
     - '\bsenior\b'
     - '\b(director|vp|vice president|head of|chief|cto)\b'
     - '\b(manager|management)\b'
-    - '\b(intern|internship|apprentice|trainee)\b'                # too junior
     - '\b(sales|account executive|marketing|recruit|support|success)\b'
     - '\b(frontend|front-end|ios|android|mobile|game|designer)\b' # wrong discipline
     - '\b(data scientist|machine learning scientist|research scientist)\b'

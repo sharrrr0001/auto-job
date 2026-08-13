@@ -23,16 +23,18 @@
 # noise and makes the prefilter counts impossible to reason about.
 
 companies:
-  - {ats: greenhouse, slug: stripe,      name: Stripe}
-  - {ats: greenhouse, slug: databricks,  name: Databricks}
-  - {ats: greenhouse, slug: cloudflare,  name: Cloudflare}
-  - {ats: greenhouse, slug: figma,       name: Figma}
-  - {ats: greenhouse, slug: dropbox,     name: Dropbox}
-  - {ats: greenhouse, slug: coinbase,    name: Coinbase}
-  - {ats: greenhouse, slug: reddit,      name: Reddit}
-  - {ats: lever,      slug: voleon,      name: Voleon}
-
-  - {ats: ashby,      slug: openai,      name: OpenAI}
-  - {ats: ashby,      slug: ramp,        name: Ramp}
-  - {ats: ashby,      slug: linear,      name: Linear}
-  - {ats: ashby,      slug: vanta,       name: Vanta}
+  - {ats: greenhouse, slug: nirmata, name: Nirmata}
+  - {ats: greenhouse, slug: appian, name: Appian Corporation}
+  - {ats: greenhouse, slug: redwoodsoftware, name: Redwood Software}
+  - {ats: greenhouse, slug: twilio, name: Twilio}
+  - {ats: greenhouse, slug: telnyx54, name: Telnyx}
+  - {ats: greenhouse, slug: sezzle, name: Sezzle}
+  - {ats: lever, slug: veeva, name: Veeva Systems}
+  - {ats: lever, slug: stable-money1, name: Stable Money}
+  - {ats: ashby, slug: ema, name: Ema}
+  - {ats: ashby, slug: kong, name: Kong}
+  - {ats: ashby, slug: reo-dev, name: Reo.Dev}
+  - {ats: ashby, slug: bolna, name: Bolna AI}
+  - {ats: greenhouse, slug: skildai-careers, name: Skild AI}
+  - {ats: ashby, slug: lgads, name: LG Ad Solutions}
+  - {ats: greenhouse, slug: gitlab, name: GitLab}

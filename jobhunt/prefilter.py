@@ -13,8 +13,9 @@ from .fetch import Job
 REMOTE_HINTS = ("remote", "anywhere", "work from home", "wfh", "distributed")
 
 
-def _any_match(patterns: list[str], text: str) -> bool:
-    return any(re.search(p, text, re.I) for p in patterns)
+def _any_match(patterns: list[str] | list[str | None], text: str) -> bool:
+    normalized = [p for p in (patterns or []) if isinstance(p, str) and p]
+    return any(re.search(p, text, re.I) for p in normalized)
 
 
 def _parse_date(value: str | None) -> datetime | None:

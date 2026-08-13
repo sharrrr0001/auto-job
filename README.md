@@ -54,6 +54,38 @@ Open `out/digest.html` in a browser. That's the email you'd have received.
 
 ---
 
+## Web control room
+
+The project includes a responsive local dashboard for managing the agent
+without hand-editing JSON or YAML. From one UI you can:
+
+- edit your experience, skills, interests, domains, target roles and projects
+- tune title regexes, locations, freshness, score threshold and digest limits
+- add, edit and remove Greenhouse, Lever and Ashby company boards
+- review scored jobs and mark applications as applied
+- start a safe mock run or a real discovery run and follow its live output
+
+Build the optimized frontend once, then start the combined API and web server:
+
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+
+pip install -r requirements.txt
+python -m jobhunt web
+```
+
+Open **http://127.0.0.1:8000**. The service binds to localhost by default and
+never returns `.env` values to the browser. Keep it local unless you put it
+behind authentication and HTTPS.
+
+For frontend development, run the API with `python -m jobhunt web --reload`,
+then run `npm run dev` inside `frontend/`. Vite proxies `/api` to port 8000.
+
+---
+
 ## Set it up for real
 
 ### 1. Point it at companies you'd actually join

@@ -183,6 +183,27 @@ def test_allow_remote_is_what_lets_an_out_of_region_remote_role_through():
     assert kept_off == []
 
 
+def test_prefilter_ignores_non_string_regex_entries():
+    from jobhunt.fetch import Job
+
+    job = Job(
+        job_id="lever:x:1",
+        ats="lever",
+        company="X",
+        title="Software Engineer",
+        location="Bangalore, India",
+        url="https://example.com",
+        description="Python",
+    )
+
+    filters = {
+        "include_titles": ["software engineer"],
+        "exclude_titles": [None, r"\bsenior\b"],
+    }
+
+    assert prefilter([job], filters) == [job]
+
+
 def test_empty_filters_keep_everything():
     jobs = fetch_all_mock()
     assert len(prefilter(jobs, {})) == len(jobs)
