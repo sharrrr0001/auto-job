@@ -1,0 +1,8 @@
+[tool.vercel]
+entrypoint = "jobhunt.web:app"
+
+# The React app lives in a nested directory and its generated dist/ directory
+# is not committed. Build it before Vercel bundles the FastAPI function so the
+# same-origin catch-all route can serve the production UI.
+[tool.vercel.scripts]
+build = "npm --prefix frontend ci && npm --prefix frontend run build"
