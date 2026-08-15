@@ -106,7 +106,8 @@ def cmd_run(args) -> int:
         jobs = fetch_all(companies)
     scanned = len(jobs)
     if not scanned:
-        print("no postings fetched — check the slugs in companies.yaml")
+        print("no postings fetched — every board was empty or unreachable")
+        print("check server network access and company slugs, or choose Safe test in the dashboard")
         return 1
 
     # ---- 2. prefilter + dedupe (deterministic, free, no LLM)

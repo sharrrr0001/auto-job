@@ -7,6 +7,10 @@ import type {
   SearchSettings,
   Stats,
   Application,
+  AdminUser,
+  AuthState,
+  UserInput,
+  UserUpdate,
 } from './types'
 
 class ApiError extends Error {
@@ -21,6 +25,7 @@ class ApiError extends Error {
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...init,
+    credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',
       ...init?.headers,
@@ -38,6 +43,12 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  session: () => request<AuthState>('/api/auth/session'),
+  setup: (payload: { name: string; email: string; password: string; setup_token: string }) =>
+    request<AuthState>('/api/auth/setup', { method: 'POST', body: JSON.stringify(payload) }),
+  login: (email: string, password: string) =>
+    request<AuthState>('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  logout: () => request<{ message: string }>('/api/auth/logout', { method: 'POST' }),
   bootstrap: () => request<BootstrapData>('/api/bootstrap'),
   saveProfile: (profile: Profile) =>
     request<{ profile: Profile; message: string }>('/api/profile', {
@@ -62,4 +73,14 @@ export const api = {
   startRun: (options: RunOptions) =>
     request<RunState>('/api/run', { method: 'POST', body: JSON.stringify(options) }),
   runStatus: () => request<RunState>('/api/run'),
+  newRun: () => request<RunState>('/api/run/new', { method: 'POST' }),
+  adminUsers: () => request<{ users: AdminUser[] }>('/api/admin/users'),
+  createUser: (user: UserInput) =>
+    request<{ user: AdminUser; message: string }>('/api/admin/users', { method: 'POST', body: JSON.stringify(user) }),
+  updateUser: (userId: string, changes: UserUpdate) =>
+    request<{ user: AdminUser; message: string }>(`/api/admin/users/${userId}`, { method: 'PATCH', body: JSON.stringify(changes) }),
+  deleteUser: (userId: string) =>
+    request<{ message: string }>(`/api/admin/users/${userId}`, { method: 'DELETE' }),
+  resetUserData: (userId: string) =>
+    request<{ message: string }>(`/api/admin/users/${userId}/reset-data`, { method: 'POST' }),
 }

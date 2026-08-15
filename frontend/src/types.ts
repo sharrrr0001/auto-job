@@ -1,4 +1,4 @@
-export type Section = 'overview' | 'profile' | 'preferences' | 'companies' | 'applications'
+export type Section = 'overview' | 'profile' | 'preferences' | 'companies' | 'applications' | 'admin'
 
 export interface Profile {
   name: string
@@ -16,7 +16,7 @@ export interface Profile {
 }
 
 export interface SearchSettings {
-  include_titles: string[]
+  role_filters: string[]
   exclude_titles: string[]
   locations: string[]
   allow_remote: boolean
@@ -24,6 +24,46 @@ export interface SearchSettings {
   score_threshold: number
   max_per_digest: number
   screen_batch_size: number
+}
+
+export interface User {
+  id: string
+  email: string
+  name: string
+  role: 'admin' | 'user'
+  active: boolean
+  created_at: string
+}
+
+export interface AuthState {
+  authenticated: boolean
+  setup_required: boolean
+  setup_token_required: boolean
+  user: User | null
+}
+
+export interface AdminUser extends User {
+  data: {
+    tracked: number
+    applied: number
+    companies: number
+    last_run: string | null
+  }
+}
+
+export interface UserInput {
+  name: string
+  email: string
+  password: string
+  role: 'admin' | 'user'
+}
+
+export interface UserUpdate {
+  name?: string
+  email?: string
+  password?: string
+  role?: 'admin' | 'user'
+  active?: boolean
 }
 
 export interface Company {

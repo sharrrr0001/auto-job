@@ -1,7 +1,7 @@
 """Deterministic filter that runs BEFORE any LLM call.
 
 This is the whole cost story: ~2000 raw jobs -> ~40 candidates for ~0 rupees,
-so Claude only ever reads jobs that already passed title + location + freshness.
+so the model only reads jobs that already passed role + location + freshness.
 """
 from __future__ import annotations
 
@@ -18,6 +18,21 @@ def _any_match(patterns: list[str] | list[str | None], text: str) -> bool:
     return any(re.search(p, text, re.I) for p in normalized)
 
 
+def _role_match(roles: list[str], title: str) -> bool:
+    """Match user-entered role names without exposing regular expressions."""
+    if not roles:
+        return True
+
+    def normalized(value: str) -> str:
+        return " ".join(re.findall(r"[a-z0-9+#]+", value.casefold()))
+
+    title_tokens = set(normalized(title).split())
+    return any(
+        bool(tokens := normalized(role).split()) and all(token in title_tokens for token in tokens)
+        for role in roles
+    )
+
+
 def _parse_date(value: str | None) -> datetime | None:
     if not value:
         return None
@@ -32,7 +47,8 @@ def _parse_date(value: str | None) -> datetime | None:
 
 
 def prefilter(jobs: list[Job], cfg: dict) -> list[Job]:
-    inc = cfg.get("include_titles") or [r"."]
+    roles = [role for role in (cfg.get("role_filters") or []) if isinstance(role, str)]
+    legacy_inc = cfg.get("include_titles") if "role_filters" not in cfg else None
     exc = cfg.get("exclude_titles") or []
     locs = [l.lower() for l in (cfg.get("locations") or [])]
     allow_remote = bool(cfg.get("allow_remote", True))
@@ -41,7 +57,8 @@ def prefilter(jobs: list[Job], cfg: dict) -> list[Job]:
 
     kept, stats = [], {"title": 0, "location": 0, "age": 0}
     for j in jobs:
-        if not _any_match(inc, j.title) or (exc and _any_match(exc, j.title)):
+        included = _role_match(roles, j.title) if legacy_inc is None else _any_match(legacy_inc or [r"."], j.title)
+        if not included or (exc and _any_match(exc, j.title)):
             stats["title"] += 1
             continue
 

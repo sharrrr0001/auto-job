@@ -210,7 +210,7 @@ On Groq or Ollama, export your resume to `.txt` first and pass that instead.
 
 ## Step 8 — Tune your filters (the most important step)
 
-Open `config.yaml`. This is a plain regex and location gate that runs **before**
+Open the dashboard's **Search preferences** page. This role and location gate runs **before**
 any AI call, and it's what makes the project nearly free: it takes ~3000 postings
 down to ~20 for zero cost, so the AI only ever reads jobs that already fit.
 
@@ -218,9 +218,9 @@ Set three things:
 
 ```yaml
 filters:
-  include_titles:     # a job must match at least one of these
-    - 'software engineer'
-    - '\bsde\b'
+  role_filters:       # plain job-title words supplied by the user
+    - 'Software Engineer'
+    - 'Backend Engineer'
   exclude_titles:     # ...and none of these
     - '\b(staff|principal|senior)\b'    # drop levels you can't reach yet
     - '\b(sales|marketing|recruit)\b'
@@ -233,9 +233,12 @@ score_threshold: 7.0  # below this, no draft and no digest slot
 max_per_digest: 5
 ```
 
-Two traps worth knowing:
+Role filters do not use regex. Enter both `SDE` and `Software Development
+Engineer` if you want both title styles.
 
-- **`sde` does not match "Software Development Engineer".** They share no
+One trap worth knowing:
+
+- **`SDE` does not match "Software Development Engineer".** They share no
   letters in that order. You need `\bsde\b` for the acronym *and*
   `software development engineer` spelled out as a separate line, or you'll
   silently miss half of all postings.
@@ -284,7 +287,7 @@ is your tuning feedback loop:
 
 | What you see | What it means | Fix |
 |---|---|---|
-| `prefilter: 3000 -> 0` | filters too tight | loosen `include_titles`, add locations, raise `max_age_days` |
+| `prefilter: 3000 -> 0` | filters too tight | add broader role filters or locations, raise `max_age_days` |
 | Everything scores 3–4 | filters too loose — wrong jobs are reaching the AI | tighten `exclude_titles`, especially seniority |
 | A few 7–9s | working | drop `--limit` and run for real |
 
@@ -399,7 +402,7 @@ once; that's the only downside, and it's harmless.
 | `GEMINI_API_KEY is not set` | `.env` missing, or the key line is blank | check `.env` sits next to `config.yaml` |
 | `gemini HTTP 404` | model name retired | re-run the model-list command in Step 6 |
 | `gemini stopped early (finishReason=MAX_TOKENS)` | reasoning models spend output tokens thinking | raise the ceilings in `jobhunt/llm.py` |
-| `prefilter: 3000 -> 0` | filters too tight | loosen `include_titles` / `locations` |
+| `prefilter: 3000 -> 0` | filters too tight | broaden role filters or locations |
 | `HTTP 404` next to a company | dead slug, company changed ATS | fix or delete it in `companies.yaml` |
 | SMTP `Username and Password not accepted` | using your Google password | use a 16-character App Password |
 | Digest arrives empty | nothing cleared `score_threshold` | lower it to 6.0, or loosen filters |

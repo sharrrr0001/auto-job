@@ -43,18 +43,19 @@ export function PreferencesEditor({
 
       <div className="settings-grid">
         <Panel className="settings-grid__main">
-          <div className="panel-title"><SlidersHorizontal size={18} /><div><h2>Role filters</h2><p>Patterns are case-insensitive regular expressions matched against job titles.</p></div></div>
+          <div className="panel-title"><SlidersHorizontal size={18} /><div><h2>Role filters</h2><p>Add the job titles you want. Matching is case-insensitive and requires no regex.</p></div></div>
           <div className="form-stack">
             <TagEditor
-              label="Include title patterns"
-              hint="A role must match at least one. Escape regex characters when you mean them literally."
-              value={draft.include_titles}
-              onChange={(value) => update('include_titles', value)}
-              placeholder="e.g. software engineering intern"
+              label="Roles to find"
+              hint="Examples: Backend Engineer, AI Engineer, Software Engineer Intern. Leave empty only if you want every title."
+              value={draft.role_filters}
+              onChange={(value) => update('role_filters', value)}
+              placeholder="e.g. Backend Engineer"
             />
+            {!draft.role_filters.length ? <div className="inline-warning">No role filter is set, so every title can pass this gate.</div> : null}
             <TagEditor
-              label="Exclude title patterns"
-              hint="Exclusions win even when an include pattern matches."
+              label="Advanced exclusions"
+              hint="Optional regular expressions. Exclusions always win over a role match."
               value={draft.exclude_titles}
               onChange={(value) => update('exclude_titles', value)}
               placeholder="e.g. \\b(senior|staff)\\b"
@@ -90,7 +91,7 @@ export function PreferencesEditor({
           <span className="eyebrow">Current funnel</span>
           <h2>Every posting must pass all three gates.</h2>
           <ol>
-            <li><span>01</span><div><strong>Title match</strong><small>{draft.include_titles.length} includes · {draft.exclude_titles.length} exclusions</small></div></li>
+            <li><span>01</span><div><strong>Role match</strong><small>{draft.role_filters.length || 'Any'} roles · {draft.exclude_titles.length} exclusions</small></div></li>
             <li><span>02</span><div><strong>Location fit</strong><small>{draft.locations.length || 'Any'} regions · remote {draft.allow_remote ? 'on' : 'off'}</small></div></li>
             <li><span>03</span><div><strong>Fresh enough</strong><small>{draft.max_age_days ? `Posted within ${draft.max_age_days} days` : 'No age limit'}</small></div></li>
           </ol>

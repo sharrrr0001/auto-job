@@ -113,12 +113,12 @@ failed batch log a warning and continue rather than kill the run.
 Two gotchas I already hit — don't repeat them:
 1. Lever `createdAt` is epoch **ms**, and my fixture dates were a year stale,
    which silently nuked everything through the freshness filter.
-2. `"sde"` as a bare regex does **not** match "Software Development Engineer".
-   Use `\bsde\b` and list the spelled-out variants separately.
+2. `SDE` does **not** match "Software Development Engineer" as a literal role
+   term. Add both role names when you want both title styles.
 
 ## Config
 
-`config.yaml` holds `include_titles` / `exclude_titles` (regex lists),
+`config.yaml` holds plain `role_filters`, advanced `exclude_titles` regexes,
 `locations`, `allow_remote`, `max_age_days`, `score_threshold`,
 `max_per_digest`, `screen_batch_size`, and all file paths.
 

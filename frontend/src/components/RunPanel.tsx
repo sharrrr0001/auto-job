@@ -16,14 +16,17 @@ export function RunPanel({
   run,
   onClose,
   onStart,
+  onNew,
 }: {
   open: boolean
   run: RunState
   onClose: () => void
   onStart: (options: RunOptions) => Promise<void>
+  onNew: () => Promise<RunState>
 }) {
   const [options, setOptions] = useState(defaults)
   const [starting, setStarting] = useState(false)
+  const [resetting, setResetting] = useState(false)
   const logEnd = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -47,6 +50,15 @@ export function RunPanel({
 
   const running = run.status === 'running'
   const hasOutput = running || run.status === 'succeeded' || run.status === 'failed'
+  const beginNew = async () => {
+    setResetting(true)
+    try {
+      await onNew()
+      setOptions(defaults)
+    } finally {
+      setResetting(false)
+    }
+  }
 
   return (
     <div className="drawer-backdrop" role="presentation" onMouseDown={onClose}>
@@ -61,13 +73,14 @@ export function RunPanel({
             <div className={`run-summary run-summary--${run.status}`}>
               {running ? <LoaderCircle className="spin" /> : run.status === 'succeeded' ? <CheckCircle2 /> : <XCircle />}
               <div><strong>{running ? 'Pipeline running' : run.status === 'succeeded' ? 'Run completed' : 'Run failed'}</strong><span>{running ? 'Keep this panel open to follow the live output.' : `Exit code ${run.exit_code ?? 'unknown'}`}</span></div>
-              <button type="button" onClick={() => setOptions(defaults)} disabled={running}>New run</button>
+              <button type="button" onClick={() => void beginNew()} disabled={running || resetting}>{resetting ? 'Preparing…' : 'New run'}</button>
             </div>
             <div className="terminal">
               <div className="terminal__bar"><span><i /><i /><i /></span><strong><Terminal size={13} /> jobhunt pipeline</strong><small>{run.logs.length} lines</small></div>
               <pre aria-live="polite">{run.logs.map((line, index) => <code key={`${index}-${line}`}>{line}{'\n'}</code>)}</pre>
               <div ref={logEnd} />
             </div>
+            {run.status === 'failed' && run.logs.some((line) => line.includes('network unavailable')) ? <div className="run-warning"><AlertTriangle size={16} /><span>The server could not reach the ATS APIs. Check firewall or hosting egress, or start a New run in Safe test mode.</span></div> : null}
             {!running ? <Button onClick={start} variant="secondary"><Play size={15} /> Run again with current options</Button> : null}
           </div>
         ) : (

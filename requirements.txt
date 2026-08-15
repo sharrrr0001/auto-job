@@ -4,6 +4,7 @@ PyYAML>=6.0
 
 # Local web dashboard and JSON API.
 fastapi>=0.116
+psycopg[binary]>=3.2
 uvicorn[standard]>=0.35
 
 # Only needed if you point a stage at Anthropic (the default provider).

@@ -116,19 +116,20 @@ def test_parsers_take_decoded_json_not_a_response():
     "Site Reliability Engineer",
     "SDE II",
 ])
-def test_include_titles_match_real_titles(title):
-    inc = FILTERS["include_titles"]
-    assert any(re.search(p, title, re.I) for p in inc), title
+def test_user_role_filters_match_real_titles(title):
+    from jobhunt.fetch import Job
+    role = title.split(",", 1)[0].replace(" II", "")
+    job = Job(job_id="x", ats="lever", company="X", title=title, location="Remote", url="", description="")
+    kept = prefilter([job], {**FILTERS, "role_filters": [role]})
+    assert kept == [job], title
 
 
-def test_bare_sde_regex_does_not_match_the_spelled_out_title():
-    """The bug: `sde` looks like it covers "Software Development Engineer".
-    It does not — they share no substring. \\bsde\\b plus the spelled-out
-    variant is why both titles survive the filter."""
-    assert not re.search(r"\bsde\b", "Software Development Engineer", re.I)
-    assert re.search(r"\bsde\b", "SDE II", re.I)
-    inc = FILTERS["include_titles"]
-    assert any(re.search(p, "Software Development Engineer, Core Infra", re.I) for p in inc)
+def test_role_filters_are_plain_text_not_regular_expressions():
+    """Dashboard users enter readable roles rather than regex syntax."""
+    from jobhunt.fetch import Job
+    job = Job(job_id="x", ats="lever", company="X", title="Backend Engineer", location="Remote", url="", description="")
+    assert prefilter([job], {**FILTERS, "role_filters": [r"\bbackend\b"]}) == []
+    assert prefilter([job], {**FILTERS, "role_filters": ["Backend Engineer"]}) == [job]
 
 
 @pytest.mark.parametrize("title", [
@@ -139,10 +140,9 @@ def test_bare_sde_regex_does_not_match_the_spelled_out_title():
     "Data Scientist, Growth",                 # wrong discipline
 ])
 def test_junk_titles_are_rejected(title):
-    inc, exc = FILTERS["include_titles"], FILTERS["exclude_titles"]
-    included = any(re.search(p, title, re.I) for p in inc)
-    excluded = any(re.search(p, title, re.I) for p in exc)
-    assert excluded or not included, f"{title!r} would have survived"
+    from jobhunt.fetch import Job
+    job = Job(job_id="x", ats="lever", company="X", title=title, location="Remote", url="", description="")
+    assert prefilter([job], {**FILTERS, "role_filters": []}) == []
 
 
 def test_full_mock_funnel_keeps_only_the_five_real_matches():

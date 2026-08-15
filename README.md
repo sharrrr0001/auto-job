@@ -60,10 +60,11 @@ The project includes a responsive local dashboard for managing the agent
 without hand-editing JSON or YAML. From one UI you can:
 
 - edit your experience, skills, interests, domains, target roles and projects
-- tune title regexes, locations, freshness, score threshold and digest limits
+- enter plain-language role filters and tune locations, freshness, and quality
 - add, edit and remove Greenhouse, Lever and Ashby company boards
 - review scored jobs and mark applications as applied
 - start a safe mock run or a real discovery run and follow its live output
+- create isolated user workspaces from the administrator panel
 
 Build the optimized frontend once, then start the combined API and web server:
 
@@ -77,9 +78,15 @@ pip install -r requirements.txt
 python -m jobhunt web
 ```
 
-Open **http://127.0.0.1:8000**. The service binds to localhost by default and
-never returns `.env` values to the browser. Keep it local unless you put it
-behind authentication and HTTPS.
+Open **http://127.0.0.1:8000** and create the first administrator. Passwords
+are PBKDF2-hashed, sessions use HttpOnly cookies, and each user gets isolated
+profile, preference, application, and run data. Local data is stored in
+`jobhunt.sqlite3` and never committed.
+
+For Vercel, attach Neon Postgres and set its pooled `DATABASE_URL`. Seed the
+first administrator with `JOBHUNT_ADMIN_NAME`, `JOBHUNT_ADMIN_EMAIL`, and a
+10+ character `JOBHUNT_ADMIN_PASSWORD`, then redeploy. Vercel's filesystem is
+read-only and is intentionally never used for saved dashboard data.
 
 For frontend development, run the API with `python -m jobhunt web --reload`,
 then run `npm run dev` inside `frontend/`. Vite proxies `/api` to port 8000.
@@ -117,7 +124,7 @@ This is the whole cost story — get it right and you spend cents a day.
 
 ```yaml
 filters:
-  include_titles: ['\bsde\b', 'software development engineer', ...]
+  role_filters: ['Backend Engineer', 'AI Engineer', 'Software Engineer Intern']
   exclude_titles: ['\b(staff|principal)\b', '\b(manager)\b', ...]
   locations: [bangalore, bengaluru, india]
   allow_remote: true
@@ -126,10 +133,9 @@ score_threshold: 7.0
 max_per_digest: 5
 ```
 
-> **`sde` does not match "Software Development Engineer".** They share no
-> substring. Use `\bsde\b` for the acronym *and* list the spelled-out variants
-> separately, or you'll silently miss half of Amazon-style postings. There's a
-> test pinning this.
+Role filters are literal, case-insensitive title words—not regular
+expressions. Leave the list empty only when you intentionally want every job
+title to reach the remaining gates.
 
 ### 3. Build your profile
 

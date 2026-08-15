@@ -4,10 +4,13 @@ from __future__ import annotations
 import html
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, asdict, field
 from typing import Any, Iterable
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 UA = {"User-Agent": "jobhunt/1.0 (personal job search agent)"}
 TIMEOUT = 20
@@ -136,25 +139,51 @@ def fetch_board(ats: str, slug: str, company: str | None = None,
     if ats not in ENDPOINTS:
         raise ValueError(f"unknown ATS: {ats}")
     url_tpl, parser = ENDPOINTS[ats]
-    sess = session or requests
+    if session is None:
+        sess = requests.Session()
+        retry = Retry(
+            total=2,
+            connect=2,
+            read=2,
+            backoff_factor=0.35,
+            status_forcelist=(429, 500, 502, 503, 504),
+            allowed_methods=("GET",),
+        )
+        sess.mount("https://", HTTPAdapter(max_retries=retry))
+    else:
+        sess = session
     try:
         r = sess.get(url_tpl.format(slug=slug), headers=UA, timeout=TIMEOUT)
         if r.status_code != 200:
             print(f"  ! {ats}/{slug} -> HTTP {r.status_code}")
             return []
         return parser(slug, company or slug, r.json())
-    except Exception as e:  # dead slug, rate limit, network blip
+    except requests.ConnectionError:
+        print(f"  ! {ats}/{slug} -> network unavailable (check firewall or server egress)")
+        return []
+    except requests.Timeout:
+        print(f"  ! {ats}/{slug} -> request timed out")
+        return []
+    except Exception as e:  # dead slug, invalid JSON, or another board fault
         print(f"  ! {ats}/{slug} -> {type(e).__name__}: {e}")
         return []
 
 
 def fetch_all(companies: Iterable[dict], sleep: float = 0.25) -> list[Job]:
+    """Fetch independent boards concurrently to fit serverless time limits."""
+    company_list = list(companies)
     jobs: list[Job] = []
-    session = requests.Session()
-    for c in companies:
-        got = fetch_board(c["ats"], c["slug"], c.get("name"), session=session)
+    if not company_list:
+        return jobs
+
+    def fetch_company(company: dict) -> tuple[dict, list[Job]]:
+        return company, fetch_board(company["ats"], company["slug"], company.get("name"))
+
+    workers = min(8, len(company_list))
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="ats-fetch") as executor:
+        results = executor.map(fetch_company, company_list)
+    for c, got in results:
         if got:
             print(f"  {c.get('name') or c['slug']:<28} {len(got):>4} jobs  ({c['ats']})")
         jobs.extend(got)
-        time.sleep(sleep)
     return jobs

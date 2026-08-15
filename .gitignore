@@ -29,7 +29,15 @@ venv/
 env/
 *.egg-info/
 .pytest_cache/
+.pytest-tmp/
 .mypy_cache/
+.uv-cache/
+.venv.broken*/
+
+# local dashboard database and runtime diagnostics
+jobhunt.sqlite3*
+*.log
+web-page-check.png
 
 # frontend dependencies and generated production assets
 frontend/node_modules/
